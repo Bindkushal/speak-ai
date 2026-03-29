@@ -78,6 +78,7 @@ class Speech(GstSpeechPlayer):
 
     def setup_kokoro(self):
         self.kokoro_pipeline = KPipeline(lang_code='a')
+        self.kokoro_pipeline_hi = KPipeline(lang_code='h')
 
     def disconnect_all(self):
         for cb in ['peak', 'wave', 'idle']:
@@ -98,6 +99,9 @@ class Speech(GstSpeechPlayer):
     def set_kokoro_voice(self, voice_name):
         if voice_name in self.kokoro_voices:
             self.current_kokoro_voice = voice_name
+            # Switch to Hindi pipeline if Hindi voice selected
+            if voice_name.startswith('h') and hasattr(self, 'kokoro_pipeline_hi'):
+                self.kokoro_pipeline = self.kokoro_pipeline_hi
             logger.debug(f"Kokoro voice set to: {voice_name}")
         else:
             logger.warning(f"Invalid Kokoro voice: {voice_name}.")

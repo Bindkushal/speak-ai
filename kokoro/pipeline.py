@@ -138,6 +138,17 @@ class KPipeline:
             except ImportError:
                 logger.error("You need to `pip install misaki[zh]` to use lang_code='z'")
                 raise
+        elif lang_code == 'h':
+            try:
+                from misaki import hi as misaki_hi
+                self.g2p = misaki_hi.HIG2P()
+            except ImportError:
+                import importlib.util, os
+                local_hi = os.path.join(os.path.dirname(__file__), 'hi.py')
+                spec = importlib.util.spec_from_file_location('hi', local_hi)
+                hi_mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(hi_mod)
+                self.g2p = hi_mod.HIG2P()
         else:
             language = LANG_CODES[lang_code]
             logger.warning(f"Using EspeakG2P(language='{language}'). Chunking logic not yet implemented, so long texts may be truncated unless you split them with '\\n'.")
