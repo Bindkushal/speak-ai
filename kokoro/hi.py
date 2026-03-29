@@ -42,8 +42,8 @@ VOWELS = {
     'ओ': 'oː',
     'औ': 'ɔː',
     'ऋ': 'rɪ',
-    'अं': 'əm',
-    'अः': 'əh',
+    'अं': 'əm',  # FIXME: unreachable — loop is char-by-char, two-char key never matches
+    'अः': 'əh',  # FIXME: unreachable — same as above
 }
 
 # Dependent vowel signs (matras)
@@ -191,7 +191,7 @@ def _devanagari_to_ipa(text: str) -> str:
 
         # Standalone anusvara / visarga at start or after space
         if ch == ANUSVARA:
-            ipa.append('m')
+            ipa.append('ŋ')
             i += 1
             continue
         if ch == VISARGA:
@@ -210,15 +210,7 @@ def _devanagari_to_ipa(text: str) -> str:
                     i += 2
                     continue
                 elif nxt in MATRAS:
-                    vowel = MATRAS[nxt]
-                    if nxt == ANUSVARA:
-                        # nasalise last vowel
-                        if ipa and ipa[-1] != CONSONANTS[ch]:
-                            ipa.append('̃')
-                        else:
-                            ipa.append('əm')
-                    else:
-                        ipa.append(vowel if vowel else '')
+                    ipa.append(MATRAS[nxt])
                     i += 2
                     continue
                 else:
@@ -298,14 +290,14 @@ class HIG2P:
     Hindi G2P — converts Hindi text (Devanagari or Romanised) to IPA.
 
     Usage:
-        from misaki.hi import HIG2P
+        from kokoro.hi import HIG2P
         g2p = HIG2P()
         ipa, tokens = g2p("नमस्ते दोस्तों")
         print(ipa)   # → nəməsteː doːstõ
     """
 
     def __init__(self, fallback_espeak: bool = True):
-        self.fallback_espeak = fallback_espeak
+        self.fallback_espeak = fallback_espeak  # FIXME: flag stored but _roman_hindi_to_ipa calls eSpeak unconditionally
 
     def __call__(self, text: str):
         """
@@ -358,38 +350,3 @@ def get_g2p() -> HIG2P:
 
 # ---------------------------------------------------------------------------
 # 6. QUICK SELF-TEST  (python hi.py)
-# ---------------------------------------------------------------------------
-
-if __name__ == '__main__':
-    g2p = HIG2P()
-
-    test_cases = [
-        # Devanagari
-        ("नमस्ते",                     "namaste"),
-        ("दोस्तों",                    "friends"),
-        ("आज हम एक कहानी सुनेंगे",    "today we will hear a story"),
-        ("मैं स्कूल जाता हूँ",         "I go to school"),
-        ("पानी पियो",                  "drink water"),
-        # Romanised
-        ("namaste",                    "namaste (roman)"),
-        ("doston",                     "friends (roman)"),
-        ("accha",                      "okay (roman)"),
-        # Mixed
-        ("नमस्ते doston",              "mixed"),
-    ]
-
-    print("=" * 60)
-    print("HIG2P — Hindi G2P Test")
-    print("=" * 60)
-
-    for text, meaning in test_cases:
-        ipa, tokens = g2p(text)
-        print(f"\nInput   : {text}")
-        print(f"Meaning : {meaning}")
-        print(f"IPA     : {ipa}")
-        if tokens:
-            for word, wp in tokens:
-                print(f"          {word:20s} → {wp}")
-
-    print("\n" + "=" * 60)
-    print("Done ✅")
